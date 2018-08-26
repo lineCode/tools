@@ -9,7 +9,6 @@
 #define FORM_DATA_PARSER_
 
 #include <string>
-#include <stdexcept>
 #include <cstring>
 #include <functional>
 #include <limits>
@@ -19,6 +18,12 @@
 
 namespace nm
 {
+#undef FALL_THROUGH
+#if __cplusplus >= 201703L
+#define FALL_THROUGH [[fallthrough]];
+#else
+#define FALL_THROUGH
+#endif
   class FormParser
   {
       using CallBack = std::function<void(const char* buffer, size_t start,
@@ -92,6 +97,7 @@ namespace nm
             case START:
               index = 0;
               state = START_BOUNDARY;
+              FALL_THROUGH
             case START_BOUNDARY:
               if(index == boundary_size_ - 2)
               {
@@ -127,6 +133,7 @@ namespace nm
               state = HEADER_FIELD;
               header_field_mark_ = i;
               index = 0;
+              FALL_THROUGH
             case HEADER_FIELD:
               if(c == CR)
               {
@@ -170,6 +177,7 @@ namespace nm
 
               header_value_mark_ = i;
               state = HEADER_VALUE;
+              FALL_THROUGH
             case HEADER_VALUE:
               if(c == CR)
               {
@@ -200,6 +208,7 @@ namespace nm
             case PART_DATA_START:
               state = PART_DATA;
               part_data_mark_ = i;
+              FALL_THROUGH
             case PART_DATA:
               prev_index = index;
 
@@ -302,15 +311,11 @@ namespace nm
               {
                 // when matching a possible boundary, keep a lookbehind reference
                 // in case it turns out to be a false lead
+                // since index is unsigned, this can happen either index equal 0
+                // or index far more larger than lookbehind_size_
                 if(index - 1 >= lookbehind_size_)
                 {
                   set_error("Parser bug: index overflows lookbehind buffer. "
-                            "Please send bug report with input file attached.");
-                  return;
-                }
-                else if(index - 1 < 0)
-                {
-                  set_error("Parser bug: index underflows lookbehind buffer. "
                             "Please send bug report with input file attached.");
                   return;
                 }
@@ -701,4 +706,5 @@ namespace nm
   };
 }
 
+#undef FALL_THROUGH
 #endif //FORM_DATA_PARSER_
