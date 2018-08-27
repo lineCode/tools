@@ -474,51 +474,21 @@ namespace nm
       // data call back
       void on_header_value(const char* buf, size_t beg, size_t end)
       {
+        std::string tmp{buf + beg, end - beg};
         static std::string name = "name=\"";
         static std::string filename = "filename=\"";
-        size_t j = 0;
-        size_t k = 0;
-        size_t index = 0;
         // only file upload can both appear name and filename
         // so, if filename appeared, is must be file upload
-        for(size_t i = beg; i < end; ++i)
+        size_t index = tmp.find(filename);
+        if(index != tmp.npos)
         {
-          if(k != filename.size())
-          {
-            if(buf[i] == filename[k])
-            {
-              ++k;
-            }
-            else
-            {
-              k = 0;
-            }
-          }
-          else
-          {
-            index = i;
-            type_ = FILE;
-            break;
-          }
-          if(j != name.size())
-          {
-            if(buf[i] == name[j])
-            {
-              ++j;
-            }
-            else
-            {
-              j = 0;
-            }
-          }
-          else
-          {
-            if(type_ == UNKNOWN) // when get name, don't break, continue seek filename
-            {
-              type_ = TEXT;
-              index = i;
-            }
-          }
+          type_ = FILE;
+          index += filename.size();
+        }
+        else if((index = tmp.find(name)) != tmp.npos)
+        {
+          type_ = TEXT;
+          index += name.size();
         }
 
         if(type_ == UNKNOWN)
@@ -529,7 +499,7 @@ namespace nm
         }
         if(key_.empty())
         {
-          key_ = std::string(buf + index, end - index - 1);
+          key_ = tmp.substr(index, tmp.size() - index - 1);
         }
       }
 
