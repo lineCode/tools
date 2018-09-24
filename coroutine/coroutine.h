@@ -191,6 +191,7 @@ namespace nm
         new_sp_ = switch_stack(nullptr, ctx, nullptr);
         fp_(arg_);
         done_ = true;
+        data_.reset();
         this->yield();
       }
   };
