@@ -52,6 +52,7 @@ namespace nm
           {
             this->co_ = rhs.co_;
             rhs.co_ = nullptr;
+            return *this;
           }
 
           bool operator== (const Iterator& rhs)
